@@ -1,10 +1,17 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return res.status(200).end();
+  }
+
+  if (String(req.method || '').toUpperCase() !== 'POST') {
     return res.status(405).json({ success: false });
   }
 
-  const auth = req.headers['authorization'];
-  if (auth !== `Apikey ${process.env.SEPAY_WEBHOOK_APIKEY}`) {
+  const auth = String(req.headers['authorization'] || '').trim();
+  const expected = `Apikey ${String(process.env.SEPAY_WEBHOOK_APIKEY || '').trim()}`;
+  if (auth !== expected) {
     return res.status(401).json({ success: false });
   }
 
