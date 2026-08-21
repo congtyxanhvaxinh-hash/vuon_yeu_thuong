@@ -241,13 +241,33 @@
         class="w-full border border-primary/20 rounded-sm px-4 py-3 text-center text-lg tracking-wide focus:outline-none focus:border-accent">
       <p id="phoneHint" class="text-xs text-accent mt-2">Nhập số để mã QR tự điền đúng nội dung chuyển khoản của anh chị</p>
 
-      <p class="font-semibold mt-8 mb-3">Bước 2 — Chạm vào mã QR để chuyển khoản</p>
-      <a id="qrLink" href="#" class="block w-56 mx-auto">
-        <img id="qrImg" src="" alt="Mã QR VietQR chuyển khoản 297.000đ" class="w-56 h-56 mx-auto rounded-sm border border-primary/10">
-      </a>
-      <p class="text-xs text-ink/50 mt-2 text-center">Trên điện thoại: chạm vào mã QR sẽ mở app ngân hàng để chuyển — số tiền &amp; nội dung đã điền sẵn trong ảnh QR, một số app tự điền luôn, một số cần anh chị bấm xác nhận. Nếu dùng máy khác để quét, quét trực tiếp ảnh QR này là được.</p>
-      <p class="text-sm text-ink/60 mt-4">Ngân hàng ACB — số tài khoản 97761168</p>
-      <p class="text-sm text-ink/60">Nội dung chuyển khoản: <span id="ckContent" class="font-mono">NTVECOWS</span></p>
+      <p class="font-semibold mt-8 mb-3">Bước 2 — Chuyển khoản</p>
+      <img id="qrImg" src="" alt="Mã QR VietQR chuyển khoản 297.000đ" class="w-56 h-56 mx-auto rounded-sm border border-primary/10 block">
+      <p class="text-xs text-ink/50 mt-2 text-center">Nếu chuyển bằng <span class="font-semibold">máy khác</span> (điện thoại người nhà, máy tính bảng...), quét thẳng ảnh QR này là điền sẵn hết. Nếu chuyển ngay trên điện thoại đang xem trang này, dùng 3 nút sao chép bên dưới rồi dán vào app ngân hàng — nhanh hơn quét màn hình chính mình.</p>
+
+      <div class="mt-4 space-y-2">
+        <div class="flex items-center justify-between gap-3 border border-primary/15 rounded-sm px-4 py-3">
+          <div>
+            <p class="text-xs text-ink/50">Ngân hàng / Số tài khoản</p>
+            <p class="text-sm font-mono">ACB — 97761168</p>
+          </div>
+          <button type="button" class="copy-btn shrink-0 bg-primary/10 text-primary text-xs font-semibold px-3 py-2 rounded-sm" data-copy="97761168">Sao chép STK</button>
+        </div>
+        <div class="flex items-center justify-between gap-3 border border-primary/15 rounded-sm px-4 py-3">
+          <div>
+            <p class="text-xs text-ink/50">Số tiền</p>
+            <p class="text-sm font-mono">297.000đ</p>
+          </div>
+          <button type="button" class="copy-btn shrink-0 bg-primary/10 text-primary text-xs font-semibold px-3 py-2 rounded-sm" data-copy="297000">Sao chép số tiền</button>
+        </div>
+        <div class="flex items-center justify-between gap-3 border border-primary/15 rounded-sm px-4 py-3">
+          <div class="min-w-0">
+            <p class="text-xs text-ink/50">Nội dung chuyển khoản</p>
+            <p id="ckContent" class="text-sm font-mono truncate">NTVECOWS</p>
+          </div>
+          <button type="button" class="copy-btn shrink-0 bg-primary/10 text-primary text-xs font-semibold px-3 py-2 rounded-sm" data-copy-target="ckContent">Sao chép nội dung</button>
+        </div>
+      </div>
 
       <p class="font-semibold mt-8 mb-2">Bước 3 — Nhắn xác nhận</p>
       <p class="text-sm text-ink/70">Ngũ Tường Viên xác nhận thủ công trong ngày. Để chắc chắn giữ được chỗ, anh chị nhắn thêm ảnh chụp chuyển khoản qua Zalo <span class="font-semibold">0968 669 776</span>.</p>
@@ -273,17 +293,15 @@
     });
   });
 
-  // Dynamic VietQR: rebuilds the QR image + tap-to-open link from the phone number
+  // Dynamic VietQR: rebuilds the QR image from the phone number, plus copy-to-clipboard for manual transfer
   (function () {
     var BANK_BIN = '970416';   // ACB
     var ACCOUNT = '97761168';
-    var BANK_SHORT = 'acb';    // used by the dl.vietqr.io tap-to-open link
     var AMOUNT = 297000;
     var ACCOUNT_NAME = 'NGU TUONG VIEN';
 
     var phoneInput = document.getElementById('phoneInput');
     var qrImg = document.getElementById('qrImg');
-    var qrLink = document.getElementById('qrLink');
     var ckContent = document.getElementById('ckContent');
     var phoneHint = document.getElementById('phoneHint');
 
@@ -297,13 +315,6 @@
         + '&addInfo=' + encodeURIComponent(addInfo)
         + '&accountName=' + encodeURIComponent(ACCOUNT_NAME);
       qrImg.src = imgUrl;
-
-      // Tap-to-open link: opens the banking app chooser on the same phone (VietQR "deeplink" — opens the app; not every bank app auto-fills amount/content yet)
-      var openUrl = 'https://dl.vietqr.io/pay?app=' + BANK_SHORT
-        + '&ba=' + ACCOUNT + '@' + BANK_SHORT
-        + '&am=' + AMOUNT
-        + '&tn=' + encodeURIComponent(addInfo);
-      qrLink.href = openUrl;
 
       ckContent.textContent = addInfo;
       if (phone) {
@@ -320,6 +331,37 @@
     phoneInput.addEventListener('input', update);
     update();
   })();
+
+  // Copy-to-clipboard buttons (account number, amount, transfer content)
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.dataset.copy || (btn.dataset.copyTarget ? document.getElementById(btn.dataset.copyTarget).textContent : '');
+      var flash = function (ok) {
+        var original = btn.textContent;
+        btn.textContent = ok ? 'Đã sao chép ✓' : 'Không sao chép được';
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      };
+      // Legacy fallback: works synchronously inside a user gesture, no permission popup needed
+      var legacyCopy = function () {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        flash(ok);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { flash(true); }).catch(legacyCopy);
+      } else {
+        legacyCopy();
+      }
+    });
+  });
 </script>
 
 </body>
